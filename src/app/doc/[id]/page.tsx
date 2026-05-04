@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback, use } from 'react';
+import { useState, useEffect, useCallback, use, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { marked } from 'marked';
 import StarterKit from '@tiptap/starter-kit';
 import { Underline } from '@tiptap/extension-underline';
 import { TextAlign } from '@tiptap/extension-text-align';
@@ -78,10 +79,35 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
     ],
     content: '',
     immediatelyRender: false,
-    onUpdate: () => {
-      // Auto-save logic
+    onUpdate: ({ editor }) => {
+      // Debounced auto-save
+      const content = editor.getHTML();
+      const timeoutId = setTimeout(() => {
+        saveDocument({ content });
+      }, 1000);
+      return () => clearTimeout(timeoutId);
     },
   });
+
+  // Since we're in a hook, let's use a ref for debouncing instead
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  useEffect(() => {
+    if (!editor) return;
+    
+    const handleUpdate = () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = setTimeout(() => {
+        saveDocument({ content: editor.getHTML() });
+      }, 1500);
+    };
+
+    editor.on('update', handleUpdate);
+    return () => {
+      editor.off('update', handleUpdate);
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, [editor, id]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -104,6 +130,27 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
       })
       .catch(console.error);
   }, [id, editor, router]);
+
+  const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editor) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const content = event.target?.result as string;
+      let htmlContent = content;
+
+      if (file.name.endsWith('.md')) {
+        htmlContent = await marked.parse(content);
+      } else if (file.name.endsWith('.txt')) {
+        htmlContent = `<p>${content.replace(/\n/g, '</p><p>')}</p>`;
+      }
+
+      editor.commands.setContent(htmlContent);
+      saveDocument({ content: htmlContent });
+    };
+    reader.readAsText(file);
+  };
 
   const saveDocument = useCallback(async (updates?: any) => {
     if (!editor) return;
@@ -216,6 +263,7 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
           }
         }},
         { label: 'Open', shortcut: 'Ctrl+O', action: () => router.push('/') },
+        { label: 'Import from file', action: () => document.getElementById('file-import')?.click() },
         { divider: true },
         { label: 'Make a copy' },
         { divider: true },
@@ -322,7 +370,13 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
 
   return (
     <div className="editor-layout">
-      {/* Sidebar */}
+      <input 
+        type="file" 
+        id="file-import" 
+        style={{ display: 'none' }} 
+        accept=".txt,.md" 
+        onChange={handleFileImport} 
+      />
       <div className="sidebar">
         <div className="sidebar-header">
           <span style={{ fontSize: '18px', fontWeight: 600 }}>Document tabs</span>
