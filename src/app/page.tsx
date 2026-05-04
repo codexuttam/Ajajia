@@ -85,7 +85,12 @@ export default function Dashboard() {
   const sharedDocs = docs.filter(d => d.ownerId !== currentUser);
 
   const renderDocCard = (doc: Omit<Document, 'content'>, isOwned: boolean) => (
-    <Link href={`/doc/${doc.id}`} key={doc.id} className="doc-card" style={{ textDecoration: 'none' }}>
+    <div 
+      key={doc.id} 
+      className="doc-card" 
+      onClick={() => router.push(`/doc/${doc.id}`)}
+      style={{ cursor: 'pointer' }}
+    >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div className={`icon-wrapper ${!isOwned ? 'shared' : ''}`} style={{ marginBottom: '12px' }}>
           {isOwned ? <FileText size={22} /> : <Users size={22} />}
@@ -120,7 +125,7 @@ export default function Dashboard() {
           Owner: {doc.ownerId}
         </div>
       )}
-    </Link>
+    </div>
   );
 
   return (
