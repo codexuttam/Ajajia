@@ -17,14 +17,6 @@ export default function Dashboard() {
   const [currentUser, setCurrentUser] = useState('user1');
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-    setCurrentUser(Cookies.get('userId') || 'user1');
-    fetchDocs();
-  }, []);
-
-  if (!mounted) return null;
-
   const fetchDocs = async () => {
     try {
       const res = await fetch('/api/docs');
@@ -36,6 +28,14 @@ export default function Dashboard() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    setMounted(true);
+    setCurrentUser(Cookies.get('userId') || 'user1');
+    fetchDocs();
+  }, []);
+
+  if (!mounted) return null;
 
   const createNewDoc = async (title = 'Untitled Document', content = '') => {
     try {
