@@ -24,6 +24,14 @@ import {
 import Cookies from 'js-cookie';
 
 export default function DocumentEditor({ params }: { params: Promise<{ id: string }> }) {
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = () => setActiveMenu(null);
+    window.addEventListener('click', handleClickOutside);
+    return () => window.removeEventListener('click', handleClickOutside);
+  }, []);
+
   const router = useRouter();
   const { id } = use(params);
   const [title, setTitle] = useState('');
@@ -178,6 +186,91 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
     saveDocument({ sharedWith: newSharedWith });
   };
 
+  const renderDropdown = (menu: string) => {
+    if (activeMenu !== menu) return null;
+
+    const items: Record<string, any[]> = {
+      File: [
+        { label: 'New', shortcut: 'Ctrl+N' },
+        { label: 'Open', shortcut: 'Ctrl+O' },
+        { divider: true },
+        { label: 'Make a copy' },
+        { divider: true },
+        { label: 'Share', icon: <Users size={14} /> },
+        { label: 'Email' },
+        { label: 'Download' },
+        { divider: true },
+        { label: 'Rename' },
+        { label: 'Move to trash', icon: <Trash2 size={14} /> },
+      ],
+      Edit: [
+        { label: 'Undo', shortcut: 'Ctrl+Z', action: () => editor?.chain().focus().undo().run() },
+        { label: 'Redo', shortcut: 'Ctrl+Y', action: () => editor?.chain().focus().redo().run() },
+        { divider: true },
+        { label: 'Cut', shortcut: 'Ctrl+X' },
+        { label: 'Copy', shortcut: 'Ctrl+C' },
+        { label: 'Paste', shortcut: 'Ctrl+V' },
+        { divider: true },
+        { label: 'Select all', shortcut: 'Ctrl+A' },
+        { divider: true },
+        { label: 'Find and replace', shortcut: 'Ctrl+H' },
+      ],
+      View: [
+        { label: 'Mode' },
+        { label: 'Show print layout', checked: true },
+        { label: 'Show ruler', checked: true },
+        { divider: true },
+        { label: 'Full screen' },
+      ],
+      Insert: [
+        { label: 'Image', icon: <Image size={14} /> },
+        { label: 'Table' },
+        { label: 'Drawing' },
+        { label: 'Chart' },
+        { divider: true },
+        { label: 'Link', shortcut: 'Ctrl+K' },
+      ],
+      Format: [
+        { label: 'Text' },
+        { label: 'Paragraph styles' },
+        { label: 'Align & indent' },
+        { divider: true },
+        { label: 'Clear formatting', shortcut: 'Ctrl+\\' },
+      ],
+      Tools: [
+        { label: 'Word count', shortcut: 'Ctrl+Shift+C' },
+        { label: 'Citations' },
+        { label: 'Dictionary', shortcut: 'Ctrl+Shift+Y' },
+      ],
+    };
+
+    return (
+      <div className="menu-dropdown" onClick={(e) => e.stopPropagation()}>
+        {items[menu]?.map((item, idx) => (
+          item.divider ? (
+            <div key={idx} className="menu-divider" />
+          ) : (
+            <div 
+              key={idx} 
+              className="menu-dropdown-item" 
+              onClick={() => {
+                if (item.action) item.action();
+                setActiveMenu(null);
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {item.checked && <CheckCircle size={14} style={{ color: '#0b57d0' }} />}
+                {item.icon}
+                <span>{item.label}</span>
+              </div>
+              {item.shortcut && <span className="menu-shortcut">{item.shortcut}</span>}
+            </div>
+          )
+        ))}
+      </div>
+    );
+  };
+
   if (!editor) return null;
 
   return (
@@ -245,14 +338,12 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
               </div>
               
               <div className="menu-bar">
-                <span className="menu-item">File</span>
-                <span className="menu-item">Edit</span>
-                <span className="menu-item">View</span>
-                <span className="menu-item">Insert</span>
-                <span className="menu-item">Format</span>
-                <span className="menu-item">Tools</span>
-                <span className="menu-item">Extensions</span>
-                <span className="menu-item">Help</span>
+                {['File', 'Edit', 'View', 'Insert', 'Format', 'Tools', 'Extensions', 'Help'].map(menu => (
+                  <div key={menu} className="menu-container" onClick={(e) => { e.stopPropagation(); setActiveMenu(activeMenu === menu ? null : menu); }}>
+                    <span className="menu-item">{menu}</span>
+                    {renderDropdown(menu)}
+                  </div>
+                ))}
               </div>
             </div>
 
