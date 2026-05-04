@@ -12,6 +12,10 @@ import { Link } from '@tiptap/extension-link';
 import { TaskList } from '@tiptap/extension-task-list';
 import { TaskItem } from '@tiptap/extension-task-item';
 import { FontFamily } from '@tiptap/extension-font-family';
+import { Table } from '@tiptap/extension-table';
+import { TableRow } from '@tiptap/extension-table-row';
+import { TableCell } from '@tiptap/extension-table-cell';
+import { TableHeader } from '@tiptap/extension-table-header';
 import { useEditor, EditorContent } from '@tiptap/react';
 import { 
   Bold, Italic, Underline as UnderlineIcon, 
@@ -67,6 +71,10 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
       Link.configure({ openOnClick: false }),
       TaskList,
       TaskItem.configure({ nested: true }),
+      Table.configure({ resizable: true }),
+      TableRow,
+      TableHeader,
+      TableCell,
     ],
     content: '',
     immediatelyRender: false,
