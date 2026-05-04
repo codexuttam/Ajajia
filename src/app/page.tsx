@@ -69,15 +69,24 @@ export default function Dashboard() {
     createNewDoc(title, htmlContent);
   };
 
-  const deleteDoc = async (id: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!confirm('Are you sure you want to delete this document?')) return;
+  const deleteDoc = async (id: string) => {
+    // Optimistically update the UI to make it feel instant and prevent multiple clicks
+    setDocs(prevDocs => prevDocs.filter(d => d.id !== id));
+
     try {
-      await fetch(`/api/docs/${id}`, { method: 'DELETE' });
-      setDocs(docs.filter(d => d.id !== id));
+      const res = await fetch(`/api/docs/${id}`, { 
+        method: 'DELETE',
+        credentials: 'same-origin'
+      });
+      
+      if (!res.ok) {
+        // If it failed on the server, we should probably fetch docs again to restore it
+        console.error(`Failed to delete document: ${res.statusText}`);
+        fetchDocs(); 
+      }
     } catch (error) {
       console.error('Failed to delete document', error);
+      fetchDocs();
     }
   };
 
@@ -98,7 +107,11 @@ export default function Dashboard() {
         
         {isOwned && (
           <button 
-            onClick={(e) => deleteDoc(doc.id, e)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              deleteDoc(doc.id);
+            }}
             style={{ 
               background: 'transparent', border: 'none', cursor: 'pointer', 
               padding: '8px', color: '#ef4444', transition: 'all 0.2s', 
