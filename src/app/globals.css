@@ -83,6 +83,25 @@ html, body {
   height: 100vh;
 }
 
+/* Header */
+.app-header {
+  display: flex;
+  align-items: center;
+  padding: 16px 32px;
+  background: transparent;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  animation: fadeUp 0.4s ease-out forwards;
+}
+
+.header-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 12px;
+}
+
 /* Buttons */
 .btn {
   padding: 10px 20px;

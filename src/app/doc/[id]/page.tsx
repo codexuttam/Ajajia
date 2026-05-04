@@ -198,7 +198,7 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
         </div>
       )}
 
-      <div className="editor-toolbar">
+      <div className="floating-toolbar">
         <button
           onClick={() => editor.chain().focus().toggleBold().run()}
           className={`toolbar-btn ${editor.isActive('bold') ? 'is-active' : ''}`}
