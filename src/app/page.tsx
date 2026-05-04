@@ -145,7 +145,7 @@ export default function Dashboard() {
     <div className="dashboard-container">
       <div className="hero-banner">
         <div>
-          <h1>Ajaia Workspace</h1>
+          <h1>{currentUser.charAt(0).toUpperCase() + currentUser.slice(1)}&apos;s Workspace</h1>
           <p style={{ color: 'var(--foreground)', opacity: 0.7, margin: 0, fontSize: '18px', fontWeight: 500 }}>Create, edit, and collaborate in real-time.</p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
