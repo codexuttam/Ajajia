@@ -191,17 +191,43 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
 
     const items: Record<string, any[]> = {
       File: [
-        { label: 'New', shortcut: 'Ctrl+N' },
-        { label: 'Open', shortcut: 'Ctrl+O' },
+        { label: 'New', shortcut: 'Ctrl+N', action: async () => {
+          setIsSaving(true);
+          try {
+            const res = await fetch('/api/docs', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ title: 'Untitled document', content: '', userId: Cookies.get('userId') || 'user1' })
+            });
+            const data = await res.json();
+            router.push(`/doc/${data.id}`);
+          } catch (error) {
+            console.error('Failed to create document:', error);
+          } finally {
+            setIsSaving(false);
+          }
+        }},
+        { label: 'Open', shortcut: 'Ctrl+O', action: () => router.push('/') },
         { divider: true },
         { label: 'Make a copy' },
         { divider: true },
-        { label: 'Share', icon: <Users size={14} /> },
+        { label: 'Share', icon: <Users size={14} />, action: () => setShowShareModal(true) },
         { label: 'Email' },
-        { label: 'Download' },
+        { label: 'Download', action: () => window.print() },
         { divider: true },
-        { label: 'Rename' },
-        { label: 'Move to trash', icon: <Trash2 size={14} /> },
+        { label: 'Rename', action: () => {
+          const newTitle = prompt('Enter new title:', title);
+          if (newTitle) {
+            setTitle(newTitle);
+            saveDocument({ title: newTitle });
+          }
+        }},
+        { label: 'Move to trash', icon: <Trash2 size={14} />, action: async () => {
+          if (confirm('Are you sure you want to delete this document?')) {
+            await fetch(`/api/docs/${id}`, { method: 'DELETE' });
+            router.push('/');
+          }
+        }},
       ],
       Edit: [
         { label: 'Undo', shortcut: 'Ctrl+Z', action: () => editor?.chain().focus().undo().run() },
@@ -211,7 +237,7 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
         { label: 'Copy', shortcut: 'Ctrl+C' },
         { label: 'Paste', shortcut: 'Ctrl+V' },
         { divider: true },
-        { label: 'Select all', shortcut: 'Ctrl+A' },
+        { label: 'Select all', shortcut: 'Ctrl+A', action: () => editor?.chain().focus().selectAll().run() },
         { divider: true },
         { label: 'Find and replace', shortcut: 'Ctrl+H' },
       ],
@@ -220,47 +246,38 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
         { label: 'Show print layout', checked: true },
         { label: 'Show ruler', checked: true },
         { divider: true },
-        { label: 'Full screen' },
+        { label: 'Full screen', action: () => {
+          if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+          } else {
+            document.exitFullscreen();
+          }
+        }},
       ],
       Insert: [
         { label: 'Image', icon: <Image size={14} /> },
-        { label: 'Table' },
+        { label: 'Table', action: () => editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() },
         { label: 'Drawing' },
-        { label: 'Chart' },
+        { label: 'Horizontal line', action: () => editor?.chain().focus().setHorizontalRule().run() },
         { divider: true },
         { label: 'Link', shortcut: 'Ctrl+K' },
       ],
       Format: [
-        { label: 'Text' },
-        { label: 'Paragraph styles' },
-        { label: 'Align & indent' },
+        { label: 'Bold', action: () => editor?.chain().focus().toggleBold().run() },
+        { label: 'Italic', action: () => editor?.chain().focus().toggleItalic().run() },
+        { label: 'Underline', action: () => editor?.chain().focus().toggleUnderline().run() },
         { divider: true },
         { label: 'Clear formatting', shortcut: 'Ctrl+\\' },
       ],
       Tools: [
-        { label: 'Proofread' },
-        { label: 'Word count', shortcut: 'Ctrl+Shift+C' },
-        { label: 'Review suggested edits', shortcut: 'Ctrl+Alt+O' },
-        { label: 'Compare documents' },
-        { divider: true },
-        { label: 'Citations' },
-        { label: 'Line numbers' },
-        { label: 'Linked objects' },
-        { label: 'Dictionary', shortcut: 'Ctrl+Shift+Y' },
-        { divider: true },
-        { label: 'Translate document' },
+        { label: 'Word count', shortcut: 'Ctrl+Shift+C', action: () => alert(`Words: ${editor?.storage.characterCount.words()}`) },
         { label: 'Voice typing', shortcut: 'Ctrl+Shift+S' },
         { label: 'Audio', icon: <Mic size={14} /> },
-        { label: 'Gemini', icon: <Sparkles size={14} /> },
-        { divider: true },
-        { label: 'Notification settings' },
-        { label: 'Preferences' },
-        { label: 'Accessibility' },
+        { label: 'Gemini', icon: <Sparkles size={14} />, action: () => document.getElementById('gemini-input')?.focus() },
       ],
       Gemini: [
-        { label: 'Write with Gemini', icon: <Sparkles size={14} /> },
+        { label: 'Write with Gemini', icon: <Sparkles size={14} />, action: () => document.getElementById('gemini-input')?.focus() },
         { label: 'Summarize', icon: <Layout size={14} /> },
-        { label: 'Suggest edits' },
         { divider: true },
         { label: 'Settings' },
       ],
