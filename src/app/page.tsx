@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Plus, FileText, Trash2, Upload } from 'lucide-react';
+import { Plus, FileText, Trash2, Upload, Users } from 'lucide-react';
 import type { Document } from '@/lib/db';
 import Cookies from 'js-cookie';
 import { marked } from 'marked';
