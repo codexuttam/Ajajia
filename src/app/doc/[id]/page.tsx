@@ -9,8 +9,9 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import { 
   Bold, Italic, Underline as UnderlineIcon, 
   Heading1, Heading2, Heading3, 
-  List, ListOrdered, ChevronLeft, Save
+  List, ListOrdered, ChevronLeft, Save, Users, X
 } from 'lucide-react';
+import Cookies from 'js-cookie';
 
 export default function DocumentEditor({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -18,6 +19,14 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
   const [title, setTitle] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  
+  const [ownerId, setOwnerId] = useState('');
+  const [sharedWith, setSharedWith] = useState<string[]>([]);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareInput, setShareInput] = useState('');
+
+  const currentUser = Cookies.get('userId') || 'user1';
+  const isOwner = currentUser === ownerId;
 
   const editor = useEditor({
     extensions: [StarterKit, Underline],
@@ -34,12 +43,14 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
       .then(res => {
         if (!res.ok) {
           router.push('/');
-          throw new Error('Document not found');
+          throw new Error('Document not found or forbidden');
         }
         return res.json();
       })
       .then(data => {
         setTitle(data.title);
+        setOwnerId(data.ownerId);
+        setSharedWith(data.sharedWith || []);
         if (editor && data.content) {
           editor.commands.setContent(data.content);
         }
@@ -47,19 +58,22 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
       .catch(console.error);
   }, [id, editor, router]);
 
-  const saveDocument = useCallback(async () => {
+  const saveDocument = useCallback(async (updates?: any) => {
     if (!editor) return;
     setIsSaving(true);
     try {
-      await fetch(`/api/docs/${id}`, {
+      const res = await fetch(`/api/docs/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title,
           content: editor.getHTML(),
+          ...(updates || {})
         }),
       });
-      setLastSaved(new Date());
+      if (res.ok) {
+        setLastSaved(new Date());
+      }
     } catch (error) {
       console.error('Failed to save', error);
     } finally {
@@ -79,6 +93,22 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [saveDocument]);
 
+  const handleShare = () => {
+    if (!shareInput.trim()) return;
+    if (sharedWith.includes(shareInput.trim())) return;
+    
+    const newSharedWith = [...sharedWith, shareInput.trim()];
+    setSharedWith(newSharedWith);
+    saveDocument({ sharedWith: newSharedWith });
+    setShareInput('');
+  };
+
+  const removeShare = (userId: string) => {
+    const newSharedWith = sharedWith.filter(u => u !== userId);
+    setSharedWith(newSharedWith);
+    saveDocument({ sharedWith: newSharedWith });
+  };
+
   if (!editor) return null;
 
   return (
@@ -93,10 +123,14 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
           className="doc-title-input"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          onBlur={saveDocument}
+          onBlur={() => saveDocument()}
           placeholder="Untitled Document"
+          readOnly={!isOwner}
+          style={{ opacity: isOwner ? 1 : 0.7 }}
         />
         
+        {!isOwner && <span style={{ fontSize: '12px', background: '#e9ecef', padding: '2px 6px', borderRadius: '4px', color: '#495057' }}>View/Edit Shared</span>}
+
         {lastSaved && (
           <span className="status-text">
             {isSaving ? 'Saving...' : `Last saved at ${lastSaved.toLocaleTimeString()}`}
@@ -104,12 +138,57 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
         )}
 
         <div className="header-actions">
-          <button className="btn btn-primary" onClick={saveDocument} disabled={isSaving}>
+          {isOwner && (
+            <button className="btn btn-secondary" onClick={() => setShowShareModal(true)}>
+              <Users size={16} />
+              Share
+            </button>
+          )}
+          <button className="btn btn-primary" onClick={() => saveDocument()} disabled={isSaving}>
             <Save size={16} />
             {isSaving ? 'Saving...' : 'Save'}
           </button>
         </div>
       </header>
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'var(--doc-bg)', padding: '24px', borderRadius: '8px', width: '400px', maxWidth: '90%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '18px', margin: 0 }}>Share Document</h2>
+              <button onClick={() => setShowShareModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+              <input 
+                type="text" 
+                placeholder="Enter user ID (e.g., user2)" 
+                value={shareInput}
+                onChange={e => setShareInput(e.target.value)}
+                style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid var(--doc-border)' }}
+              />
+              <button className="btn btn-primary" onClick={handleShare}>Add</button>
+            </div>
+
+            <div>
+              <h3 style={{ fontSize: '14px', marginBottom: '8px', color: '#666' }}>Shared with:</h3>
+              {sharedWith.length === 0 ? (
+                <p style={{ fontSize: '14px', color: '#999' }}>Not shared with anyone yet.</p>
+              ) : (
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                  {sharedWith.map(user => (
+                    <li key={user} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #eee' }}>
+                      <span>{user}</span>
+                      <button onClick={() => removeShare(user)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#dc3545' }}>Remove</button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="editor-toolbar">
         <button

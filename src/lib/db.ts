@@ -14,13 +14,15 @@ export interface Document {
   content: string; // HTML string from TipTap
   createdAt: number;
   updatedAt: number;
+  ownerId: string;
+  sharedWith: string[];
 }
 
 function getFilePath(id: string) {
   return path.join(DATA_DIR, `${id}.json`);
 }
 
-export function getAllDocuments(): Omit<Document, 'content'>[] {
+export function getAllDocuments(userId?: string): Omit<Document, 'content'>[] {
   const files = fs.readdirSync(DATA_DIR);
   const docs = files
     .filter(file => file.endsWith('.json'))
@@ -32,9 +34,18 @@ export function getAllDocuments(): Omit<Document, 'content'>[] {
         title: doc.title,
         createdAt: doc.createdAt,
         updatedAt: doc.updatedAt,
+        ownerId: doc.ownerId,
+        sharedWith: doc.sharedWith || [],
       };
     });
-  return docs.sort((a, b) => b.updatedAt - a.updatedAt);
+  
+  // Filter for docs owned by or shared with the user
+  let filteredDocs = docs;
+  if (userId) {
+    filteredDocs = docs.filter(doc => doc.ownerId === userId || doc.sharedWith?.includes(userId));
+  }
+  
+  return filteredDocs.sort((a, b) => b.updatedAt - a.updatedAt);
 }
 
 export function getDocument(id: string): Document | null {
@@ -44,14 +55,16 @@ export function getDocument(id: string): Document | null {
   return JSON.parse(content);
 }
 
-export function createDocument(title: string): Document {
+export function createDocument(title: string, ownerId: string = 'user1', initialContent: string = ''): Document {
   const id = uuidv4();
   const doc: Document = {
     id,
     title,
-    content: '',
+    content: initialContent,
     createdAt: Date.now(),
     updatedAt: Date.now(),
+    ownerId,
+    sharedWith: [],
   };
   fs.writeFileSync(getFilePath(id), JSON.stringify(doc, null, 2));
   return doc;

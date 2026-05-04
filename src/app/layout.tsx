@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   description: "Lightweight collaborative document editor",
 };
 
+import { UserSwitcher } from "@/components/UserSwitcher";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -24,7 +26,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <UserSwitcher />
+      </body>
     </html>
   );
 }
