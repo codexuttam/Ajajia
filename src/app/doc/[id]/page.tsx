@@ -18,7 +18,7 @@ import {
   Heading1, Heading2, Heading3, 
   List, ListOrdered, ChevronLeft, Save, Users, X, Mail, CheckCircle, AlertCircle, Loader,
   FileText, Plus, MoreVertical, Search, Undo, Redo, Printer, SpellCheck, Type, Highlighter, 
-  Link as LinkIcon, Image, AlignLeft, AlignCenter, AlignRight, AlignJustify, 
+  Link as LinkIcon, Image, AlignLeft, AlignCenter, AlignRight, AlignJustify, Trash2,
   CheckSquare, MessageSquare, Mic, Sparkles, Send, Layout, ArrowUpRight
 } from 'lucide-react';
 import Cookies from 'js-cookie';
@@ -238,9 +238,31 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
         { label: 'Clear formatting', shortcut: 'Ctrl+\\' },
       ],
       Tools: [
+        { label: 'Proofread' },
         { label: 'Word count', shortcut: 'Ctrl+Shift+C' },
+        { label: 'Review suggested edits', shortcut: 'Ctrl+Alt+O' },
+        { label: 'Compare documents' },
+        { divider: true },
         { label: 'Citations' },
+        { label: 'Line numbers' },
+        { label: 'Linked objects' },
         { label: 'Dictionary', shortcut: 'Ctrl+Shift+Y' },
+        { divider: true },
+        { label: 'Translate document' },
+        { label: 'Voice typing', shortcut: 'Ctrl+Shift+S' },
+        { label: 'Audio', icon: <Mic size={14} /> },
+        { label: 'Gemini', icon: <Sparkles size={14} /> },
+        { divider: true },
+        { label: 'Notification settings' },
+        { label: 'Preferences' },
+        { label: 'Accessibility' },
+      ],
+      Gemini: [
+        { label: 'Write with Gemini', icon: <Sparkles size={14} /> },
+        { label: 'Summarize', icon: <Layout size={14} /> },
+        { label: 'Suggest edits' },
+        { divider: true },
+        { label: 'Settings' },
       ],
     };
 
@@ -338,7 +360,7 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
               </div>
               
               <div className="menu-bar">
-                {['File', 'Edit', 'View', 'Insert', 'Format', 'Tools', 'Extensions', 'Help'].map(menu => (
+                {['File', 'Edit', 'View', 'Insert', 'Format', 'Tools', 'Gemini', 'Extensions', 'Help'].map(menu => (
                   <div key={menu} className="menu-container" onClick={(e) => { e.stopPropagation(); setActiveMenu(activeMenu === menu ? null : menu); }}>
                     <span className="menu-item">{menu}</span>
                     {renderDropdown(menu)}
