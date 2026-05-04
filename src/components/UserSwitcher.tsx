@@ -31,28 +31,39 @@ export function UserSwitcher() {
   return (
     <div style={{
       position: 'fixed',
-      bottom: '20px',
-      right: '20px',
-      background: 'var(--doc-bg)',
-      padding: '10px',
-      borderRadius: '8px',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+      bottom: '24px',
+      right: '24px',
+      background: 'rgba(255, 255, 255, 0.4)',
+      backdropFilter: 'blur(16px)',
+      WebkitBackdropFilter: 'blur(16px)',
+      padding: '10px 16px',
+      borderRadius: '9999px',
+      boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)',
       border: '1px solid var(--doc-border)',
       zIndex: 1000,
       display: 'flex',
       alignItems: 'center',
-      gap: '10px'
+      gap: '12px',
+      animation: 'fadeUp 0.5s ease-out'
     }}>
-      <span style={{ fontSize: '12px', fontWeight: 'bold' }}>Simulate User:</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }} />
+        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--foreground)' }}>Simulating:</span>
+      </div>
       <select
         value={currentUser}
         onChange={handleUserChange}
         style={{
-          padding: '4px 8px',
-          borderRadius: '4px',
-          border: '1px solid var(--doc-border)',
-          background: 'var(--background)',
-          color: 'var(--foreground)'
+          padding: '6px 12px',
+          borderRadius: '9999px',
+          border: 'none',
+          background: 'var(--primary)',
+          color: 'white',
+          fontWeight: 600,
+          outline: 'none',
+          cursor: 'pointer',
+          boxShadow: '0 4px 10px rgba(79, 70, 229, 0.3)',
+          fontFamily: 'var(--font-sans)',
         }}
       >
         {USERS.map(user => (

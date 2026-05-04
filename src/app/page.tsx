@@ -85,24 +85,27 @@ export default function Dashboard() {
 
   const renderDocCard = (doc: Omit<Document, 'content'>, isOwned: boolean) => (
     <Link href={`/doc/${doc.id}`} key={doc.id} className="doc-card">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-        <FileText size={20} color={isOwned ? "var(--primary)" : "#28a745"} />
-        <h3 style={{ margin: 0 }}>{doc.title || 'Untitled Document'}</h3>
+      <div className={`icon-wrapper ${!isOwned ? 'shared' : ''}`}>
+        {isOwned ? <FileText size={24} /> : <Users size={24} />}
       </div>
+      <h3>{doc.title || 'Untitled Document'}</h3>
       <p>Opened {new Date(doc.updatedAt).toLocaleDateString()}</p>
+      
       {isOwned ? (
-        <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end' }}>
+        <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end', position: 'relative', zIndex: 10 }}>
           <button 
             onClick={(e) => deleteDoc(doc.id, e)}
-            style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px' }}
+            style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '6px', color: '#ef4444', transition: 'all 0.2s', borderRadius: '8px' }}
             title="Delete document"
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
-            <Trash2 size={16} color="#dc3545" />
+            <Trash2 size={18} />
           </button>
         </div>
       ) : (
-        <div style={{ marginTop: 'auto', fontSize: '12px', color: '#666' }}>
-          Shared by {doc.ownerId}
+        <div style={{ marginTop: 'auto', fontSize: '13px', color: '#64748b', fontWeight: 500 }}>
+          Owner: {doc.ownerId}
         </div>
       )}
     </Link>
@@ -110,9 +113,12 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 style={{ fontSize: '28px' }}>My Workspace</h1>
-        <div style={{ display: 'flex', gap: '10px' }}>
+      <div className="hero-banner">
+        <div>
+          <h1>Ajaia Workspace</h1>
+          <p style={{ color: 'var(--foreground)', opacity: 0.7, margin: 0, fontSize: '18px', fontWeight: 500 }}>Create, edit, and collaborate in real-time.</p>
+        </div>
+        <div style={{ display: 'flex', gap: '12px' }}>
           <input 
             type="file" 
             accept=".txt,.md" 
@@ -132,22 +138,30 @@ export default function Dashboard() {
       </div>
 
       {loading ? (
-        <p style={{ marginTop: '40px', color: '#666' }}>Loading documents...</p>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '60px' }}>
+          <p style={{ color: '#64748b', fontSize: '16px', fontWeight: 500, animation: 'pulse 1.5s infinite' }}>Loading workspace...</p>
+        </div>
       ) : (
         <>
-          <h2 style={{ marginTop: '32px', fontSize: '20px', borderBottom: '1px solid var(--doc-border)', paddingBottom: '8px' }}>Owned Documents</h2>
-          <div className="doc-list">
+          <h2 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--foreground)', marginBottom: '8px' }}>Owned Documents</h2>
+          <div className="doc-list" style={{ marginBottom: '40px' }}>
             {ownedDocs.length === 0 ? (
-              <p style={{ gridColumn: '1 / -1', color: '#666' }}>No documents owned.</p>
+              <div style={{ gridColumn: '1 / -1', padding: '40px', textAlign: 'center', background: 'var(--card-bg)', backdropFilter: 'blur(12px)', borderRadius: '16px', border: '1px solid var(--doc-border)' }}>
+                <FileText size={48} style={{ opacity: 0.3, marginBottom: '16px', color: 'var(--foreground)' }} />
+                <p style={{ margin: 0, fontSize: '16px', color: '#64748b' }}>No documents owned yet. Create one to get started.</p>
+              </div>
             ) : (
               ownedDocs.map(doc => renderDocCard(doc, true))
             )}
           </div>
 
-          <h2 style={{ marginTop: '40px', fontSize: '20px', borderBottom: '1px solid var(--doc-border)', paddingBottom: '8px' }}>Shared With Me</h2>
+          <h2 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--foreground)', marginBottom: '8px' }}>Shared With Me</h2>
           <div className="doc-list">
             {sharedDocs.length === 0 ? (
-              <p style={{ gridColumn: '1 / -1', color: '#666' }}>No shared documents.</p>
+              <div style={{ gridColumn: '1 / -1', padding: '40px', textAlign: 'center', background: 'var(--card-bg)', backdropFilter: 'blur(12px)', borderRadius: '16px', border: '1px solid var(--doc-border)' }}>
+                <Users size={48} style={{ opacity: 0.3, marginBottom: '16px', color: 'var(--foreground)' }} />
+                <p style={{ margin: 0, fontSize: '16px', color: '#64748b' }}>No shared documents available.</p>
+              </div>
             ) : (
               sharedDocs.map(doc => renderDocCard(doc, false))
             )}
