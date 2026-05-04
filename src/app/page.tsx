@@ -14,11 +14,16 @@ export default function Dashboard() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const currentUser = Cookies.get('userId') || 'user1';
+  const [currentUser, setCurrentUser] = useState('user1');
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+    setCurrentUser(Cookies.get('userId') || 'user1');
     fetchDocs();
   }, []);
+
+  if (!mounted) return null;
 
   const fetchDocs = async () => {
     try {

@@ -25,7 +25,14 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareInput, setShareInput] = useState('');
 
-  const currentUser = Cookies.get('userId') || 'user1';
+  const [currentUser, setCurrentUser] = useState('user1');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    setCurrentUser(Cookies.get('userId') || 'user1');
+  }, []);
+
   const isOwner = currentUser === ownerId;
 
   const editor = useEditor({
@@ -38,6 +45,7 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
   });
 
   useEffect(() => {
+    if (!mounted) return;
     // Load document
     fetch(`/api/docs/${id}`)
       .then(res => {
@@ -153,11 +161,11 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
 
       {/* Share Modal */}
       {showShareModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'var(--doc-bg)', padding: '24px', borderRadius: '8px', width: '400px', maxWidth: '90%' }}>
+        <div className="modal-overlay">
+          <div className="modal-content">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h2 style={{ fontSize: '18px', margin: 0 }}>Share Document</h2>
-              <button onClick={() => setShowShareModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
+              <button onClick={() => setShowShareModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--foreground)' }}><X size={20} /></button>
             </div>
             
             <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
@@ -166,21 +174,21 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
                 placeholder="Enter user ID (e.g., user2)" 
                 value={shareInput}
                 onChange={e => setShareInput(e.target.value)}
-                style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid var(--doc-border)' }}
+                style={{ flex: 1, padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--doc-border)', background: 'var(--background)', color: 'var(--foreground)', outline: 'none' }}
               />
               <button className="btn btn-primary" onClick={handleShare}>Add</button>
             </div>
 
             <div>
-              <h3 style={{ fontSize: '14px', marginBottom: '8px', color: '#666' }}>Shared with:</h3>
+              <h3 style={{ fontSize: '14px', marginBottom: '12px', color: '#64748b' }}>Shared with:</h3>
               {sharedWith.length === 0 ? (
-                <p style={{ fontSize: '14px', color: '#999' }}>Not shared with anyone yet.</p>
+                <p style={{ fontSize: '14px', color: '#94a3b8' }}>Not shared with anyone yet.</p>
               ) : (
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                   {sharedWith.map(user => (
-                    <li key={user} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #eee' }}>
+                    <li key={user} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--doc-border)', fontSize: '14px' }}>
                       <span>{user}</span>
-                      <button onClick={() => removeShare(user)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#dc3545' }}>Remove</button>
+                      <button onClick={() => removeShare(user)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#ef4444', fontWeight: 500 }}>Remove</button>
                     </li>
                   ))}
                 </ul>
