@@ -71,6 +71,7 @@ export default function Dashboard() {
 
   const deleteDoc = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     if (!confirm('Are you sure you want to delete this document?')) return;
     try {
       await fetch(`/api/docs/${id}`, { method: 'DELETE' });
@@ -84,27 +85,38 @@ export default function Dashboard() {
   const sharedDocs = docs.filter(d => d.ownerId !== currentUser);
 
   const renderDocCard = (doc: Omit<Document, 'content'>, isOwned: boolean) => (
-    <Link href={`/doc/${doc.id}`} key={doc.id} className="doc-card">
-      <div className={`icon-wrapper ${!isOwned ? 'shared' : ''}`}>
-        {isOwned ? <FileText size={24} /> : <Users size={24} />}
-      </div>
-      <h3>{doc.title || 'Untitled Document'}</h3>
-      <p>Opened {new Date(doc.updatedAt).toLocaleDateString()}</p>
-      
-      {isOwned ? (
-        <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end', position: 'relative', zIndex: 10 }}>
+    <Link href={`/doc/${doc.id}`} key={doc.id} className="doc-card" style={{ textDecoration: 'none' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div className={`icon-wrapper ${!isOwned ? 'shared' : ''}`} style={{ marginBottom: '12px' }}>
+          {isOwned ? <FileText size={22} /> : <Users size={22} />}
+        </div>
+        
+        {isOwned && (
           <button 
             onClick={(e) => deleteDoc(doc.id, e)}
-            style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '6px', color: '#ef4444', transition: 'all 0.2s', borderRadius: '8px' }}
+            style={{ 
+              background: 'transparent', border: 'none', cursor: 'pointer', 
+              padding: '8px', color: '#ef4444', transition: 'all 0.2s', 
+              borderRadius: '8px', position: 'relative', zIndex: 10 
+            }}
             title="Delete document"
             onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
             <Trash2 size={18} />
           </button>
-        </div>
-      ) : (
-        <div style={{ marginTop: 'auto', fontSize: '13px', color: '#64748b', fontWeight: 500 }}>
+        )}
+      </div>
+      
+      <h3 style={{ margin: '0 0 6px 0', fontSize: '18px', fontWeight: 600, color: 'var(--foreground)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        {doc.title || 'Untitled Document'}
+      </h3>
+      <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
+        Opened {new Date(doc.updatedAt).toLocaleDateString()}
+      </p>
+      
+      {!isOwned && (
+        <div style={{ marginTop: 'auto', fontSize: '13px', color: '#64748b', fontWeight: 500, paddingTop: '12px', borderTop: '1px solid var(--doc-border)' }}>
           Owner: {doc.ownerId}
         </div>
       )}
