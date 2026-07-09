@@ -11,6 +11,10 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+/**
+ * Handles POST requests to send an email invitation for a document.
+ * Expects JSON payload with: toEmail, docTitle, docId, sharedByUserId
+ */
 export async function POST(req: NextRequest) {
   try {
     const { toEmail, docTitle, docId, sharedByUserId } = await req.json();
