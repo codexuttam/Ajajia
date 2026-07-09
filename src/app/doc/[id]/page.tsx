@@ -559,7 +559,7 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
           <input 
             type="text" 
             className="gemini-input" 
-            placeholder="Write with Gemini..." 
+            placeholder="Ask Gemini to write..." 
           />
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <Layout size={18} style={{ color: '#5f6368', cursor: 'pointer' }} />
