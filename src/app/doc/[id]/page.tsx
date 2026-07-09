@@ -401,7 +401,7 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
         <div style={{ marginTop: 'auto' }}>
           <button className="toolbar-btn-small" style={{ width: '100%', justifyContent: 'flex-start' }}>
             <ChevronLeft size={16} />
-            <span style={{ marginLeft: '8px' }}>Collapse sidebar</span>
+            <span style={{ marginLeft: '8px' }}>Hide sidebar</span>
           </button>
         </div>
       </div>
