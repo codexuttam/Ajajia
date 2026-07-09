@@ -1,6 +1,7 @@
 {
   "name": "ajaia_app",
   "version": "0.1.0",
+  "description": "Ajaia Docs Web Application",
   "private": true,
   "scripts": {
     "dev": "next dev",
