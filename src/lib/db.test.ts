@@ -1,3 +1,7 @@
+/**
+ * Database Operations Test Suite
+ * Tests basic CRUD operations and sharing logic for the local file-based database.
+ */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
