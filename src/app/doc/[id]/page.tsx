@@ -425,7 +425,7 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   onBlur={() => saveDocument()}
-                  placeholder="Untitled document"
+                  placeholder="Enter document title"
                   readOnly={!isOwner}
                   style={{ 
                     fontSize: '18px', 
