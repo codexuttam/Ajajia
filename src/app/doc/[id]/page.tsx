@@ -394,7 +394,7 @@ export default function DocumentEditor({ params }: { params: Promise<{ id: strin
         
         <div style={{ marginTop: '24px' }}>
           <p style={{ fontSize: '12px', color: '#5f6368', lineHeight: 1.5 }}>
-            Headings you add to the document will appear here.
+            Document outlines will appear here.
           </p>
         </div>
 
