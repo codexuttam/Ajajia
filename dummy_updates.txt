@@ -17,3 +17,4 @@ Core update 3
 Core update 4
 Core update 5
 Core update 6
+Core update 7
